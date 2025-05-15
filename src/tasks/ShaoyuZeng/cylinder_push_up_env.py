@@ -124,6 +124,22 @@ class CylinderPushUpEnv(BaseEnv):
             self.cylinder.set_angular_velocity(torch.zeros((b, 3), device=self.device))
 
     def evaluate(self):
+        """Evaluate the success of the task and two subgoals: getting into the target region and stopping.
+
+        Criteria:
+        1. Inside target region:
+            - The xy position cylinder is inside the target region, which is the top surface of the blue cube.
+            - The z position of the cylinder is higher than the cube.
+        2. Stopped:
+            - The speed of the cylinder is less than 0.01 m/s.
+        3. Success:
+            - The cylinder is inside the target region and stopped.
+
+        Returns:
+            - success: A boolean indicating whether the task is successful.
+            - is_cylinder_in_target: A boolean indicating whether the cylinder is inside the target region.
+            - is_cylinder_still: A boolean indicating whether the cylinder is stopped.
+        """
         # success is achieved when the cylinder's position is within the target region while it is not moving
         is_cylinder_in_target = (
             self.cylinder.pose.p[..., 0] > -0.1 and
@@ -162,6 +178,16 @@ class CylinderPushUpEnv(BaseEnv):
         return obs
 
     def compute_dense_reward(self, obs, action, info):
+        """
+        Compute the dense reward for the task.
+
+        Reward components:
+        - Encourages the cylinder to move closer to the target region (in xy).
+        - Rewards lifting the cylinder to the correct height.
+        - Gives a bonus for being inside the target region.
+        - Rewards the cylinder for being still inside the target region.
+        - Penalizes any use of the gripper.
+        """
         with torch.device(self.device):
             reward = torch.zeros(self.num_envs, device=self.device)
             success = info["success"]
