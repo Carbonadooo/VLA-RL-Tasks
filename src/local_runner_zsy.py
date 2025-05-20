@@ -4,18 +4,21 @@ import time
 from mani_skill.utils.wrappers.record import RecordEpisode
 import sys
 from tasks.ShaoyuZeng.cylinder_push_up_env import CylinderPushUpEnv
+from tasks.JunhaoLi.table_scene_base import TableSceneEnv
 import time
 
 # render_notsave = False
 render_notsave = True
-def generate_videos(n_episodes=10, max_steps_per_episode=100, video_dir="task_videos/CylinderPushUp-v1"):
+task = ["CylinderPushUp-v1", "TableScene-v1", "DominoToppling-v1", "Jenga-v1"]
+i = 0
+def generate_videos(n_episodes=1, max_steps_per_episode=100, video_dir="task_videos/"+task[i]):
     """
     Generate and save videos of random agent interactions in the CylinderPushUp environment.
     """
     if render_notsave:
-        env = gym.make("CylinderPushUp-v1", obs_mode="state", render_mode="human")
+        env = gym.make(task[i], obs_mode="state", render_mode="human")
     else:
-        env = gym.make("CylinderPushUp-v1", obs_mode="state", render_mode="rgb_array")
+        env = gym.make(task[i], obs_mode="state", render_mode="rgb_array")
         video_dir = os.path.join(video_dir, time.strftime("%Y%m%d-%H%M%S"))
         os.makedirs(video_dir, exist_ok=True)
 
