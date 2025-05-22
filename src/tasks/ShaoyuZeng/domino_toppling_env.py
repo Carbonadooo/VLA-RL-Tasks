@@ -37,15 +37,15 @@ class DominoTopplingEnv(BaseEnv):
     - All dominoes fall in the correct sequence after arrangement, with no illegal robot contacts.
     """
 
-    SUPPORTED_ROBOTS = ["panda", "fetch"]
-    agent = Union[Panda, Fetch]
+    SUPPORTED_ROBOTS = ["panda"]
+    agent = Union[Panda]
 
     # Use half of the previous values for half_size
     domino_half_size = [0.005, 0.015, 0.03]  # x, y, z half-size
+    num_dominoes = 4  # red, blue1, blue2, green
 
-    def __init__(self, *args, robot_uids="fetch", **kwargs):
+    def __init__(self, *args, robot_uids="panda", **kwargs):
         super().__init__(*args, robot_uids=robot_uids, **kwargs)
-        self.num_dominoes = 4  # red, blue1, blue2, green
 
     def _load_agent(self, options: dict):
         super()._load_agent(options, sapien.Pose(p=[0, 0, 1]))
@@ -131,7 +131,7 @@ class DominoTopplingEnv(BaseEnv):
             self.green_domino.set_angular_velocity(torch.zeros((b, 3), device=self.device))
 
             # Blue dominoes (laying down)
-            blue_positions = torch.tensor([[0, 0.5, 0.045], [0, 0.9, 0.045]], device=self.device)
+            blue_positions = torch.tensor([[0, 0.2, 0.045], [0, 0.3, 0.045]], device=self.device)
             qy = torch.tensor([np.cos(np.pi/4), 0, np.sin(np.pi/4), 0], device=self.device)
             for i, domino in enumerate(self.blue_dominoes):
                 p = blue_positions[i].repeat(b, 1)
@@ -301,6 +301,14 @@ class DominoTopplingEnv(BaseEnv):
         return obs
 
     # Reward function not implemented yet
+    
+    def compute_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):
+        return torch.zeros(self.num_envs, device=self.device)
+
+    def compute_normalized_dense_reward(
+        self, obs: Any, action: torch.Tensor, info: Dict
+    ):
+        return torch.zeros(self.num_envs, device=self.device)
 
     @property
     def _default_sensor_configs(self):
