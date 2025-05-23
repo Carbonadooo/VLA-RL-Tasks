@@ -20,21 +20,13 @@ class DominoTopplingEnv(BaseEnv):
     Arrange two blue dominoes between a fixed red domino and a randomized green domino, then trigger a chain reaction by knocking down the red domino so that all dominoes fall in sequence.
 
     **Instructions:**
-    1. Place the two blue dominoes (initially laying flat at (0,0.5) and (0,0.9)) upright between the red and green dominoes.
-    2. Do not move or knock over the red (start) or green (end) dominoes during arrangement.
-    3. Once all dominoes are upright and still, push the red domino to start the chain reaction.
-    4. The task is successful if all dominoes fall in sequence (red, blue1/blue2, green) without the robot touching any domino during the chain reaction.
-
-    **Stages:**
-    - Stage 0: Arranging blue dominoes.
-    - Stage 1: Ready to push (all dominoes upright and still).
-    - Stage 2: Chain reaction (red domino pushed, dominoes fall in order).
+    "Arrange dominoes between red and green, then topple them down from red one."
 
     **Randomization:**
-    - The green domino's position is randomized on a circle sector and its z-rotation is randomized.
+    The green (end) domino's position is in a circle sector, whose center is red (start) domino and radius is randomized between [0.12, 0.15] and its z-rotation is randomized between [0, 2π].
 
     **Success Condition:**
-    - All dominoes fall in the correct sequence after arrangement, with no illegal robot contacts.
+    All dominoes fall in the correct sequence after arrangement. No domino should be pushed down before the arrangement is complete.
     """
 
     SUPPORTED_ROBOTS = ["panda"]
@@ -68,7 +60,7 @@ class DominoTopplingEnv(BaseEnv):
         self.red_domino = builder.build_dynamic(name="red_domino")
         self.dominoes.append(self.red_domino)
 
-        # Green domino (end) - just build, no randomization here
+        # Green domino (end)
         builder = self.scene.create_actor_builder()
         builder.add_box_collision(half_size=self.domino_half_size)
         builder.add_box_visual(
@@ -163,11 +155,11 @@ class DominoTopplingEnv(BaseEnv):
         return torch.norm(v, dim=-1) < 0.001
 
     def _is_domino_touched(self, domino):
-        # Use is_near: check if robot TCP is within 0.03m of domino center
+        # Use is_near: check if robot TCP is within 0.02m of domino center
         tcp_pos = self.agent.tcp.pose.p  # shape (b, 3)
         domino_pos = domino.pose.p       # shape (b, 3)
         dist = torch.norm(tcp_pos - domino_pos, dim=-1)
-        return dist < 0.03
+        return dist < 0.02
 
     def _update_stage_and_flags(self):
         # Update fallen_flags, touched_flags, and stage transitions
@@ -300,8 +292,7 @@ class DominoTopplingEnv(BaseEnv):
             obs["blue_domino_2_vel"] = self.blue_dominoes[1].get_linear_velocity()
         return obs
 
-    # Reward function not implemented yet
-    
+    # Dense reward function not necessary
     def compute_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):
         return torch.zeros(self.num_envs, device=self.device)
 
