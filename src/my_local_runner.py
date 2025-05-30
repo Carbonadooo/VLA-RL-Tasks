@@ -2,11 +2,11 @@ import os
 import gymnasium as gym
 import time
 from mani_skill.utils.wrappers.record import RecordEpisode
-from tasks.ShaoyuZeng import cylinder_push_up_env, domino_toppling_env
+from tasks.ShaoyuZeng import cylinder_push_up_env, domino_toppling_env, balance_beam_env
 
 
-task_names = ["CylinderPushUp-v1", "DominoToppling-v1"]
-task_idx = 1
+task_names = ["CylinderPushUp-v1", "DominoToppling-v1", "BalanceBeam-v1"]
+task_idx = 2
 task_name = task_names[task_idx]
 is_save = False
 
@@ -34,7 +34,7 @@ def generate_videos(n_episodes=10, max_steps_per_episode=100, video_dir=task_vid
             obs, reward, terminated, truncated, info = env.step(action)
             if not is_save:
                 env.render()
-                time.sleep(0.01)
+                time.sleep(0.1)
             if terminated or truncated:
                 break
     env.close()
